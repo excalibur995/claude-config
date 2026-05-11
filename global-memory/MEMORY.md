@@ -1,0 +1,1 @@
+- [Token-saving skills — auto-apply](feedback_token_saving_skills.md) — 5 custom skills installed; apply lean-read, no-reread, lean-explore, output-filter, agent-brief automatically
