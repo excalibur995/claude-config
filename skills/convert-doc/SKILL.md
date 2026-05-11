@@ -21,7 +21,40 @@ Whenever the user instructs you to inspect, read, review, or edit any document t
 4. **Answer Prompt**: Fulfill the user's original request based strictly on the content extracted within the clean `_temp.md` asset.
 5. **Session Cleanup**: Once the relevant data has been retrieved and displayed to the user, immediately execute a bash removal command (`rm "path/to/input_file_temp.md"`) to prevent cluttering the repository.
 
+# Dependency Check
+
+Before any conversion, verify the required tool is installed:
+
+```bash
+which pandoc   # for DOCX / HTML / XML / RST / LATEX
+which pdftotext  # for PDF
+```
+
+If the command returns nothing or exits with an error, **stop immediately** and tell the user:
+
+---
+
+**For `pandoc` (missing):**
+> `pandoc` is not installed. Install it first:
+> - Mac: `brew install pandoc`
+> - Ubuntu/Debian: `sudo apt install pandoc`
+> - Windows: download from https://pandoc.org/installing.html
+>
+> Once installed, re-run your request.
+
+**For `pdftotext` (missing):**
+> `pdftotext` is not installed. It is part of the `poppler` package. Install it first:
+> - Mac: `brew install poppler`
+> - Ubuntu/Debian: `sudo apt install poppler-utils`
+> - Windows: download from https://poppler.freedesktop.org
+>
+> Once installed, re-run your request.
+
+---
+
+Do **not** attempt to read the raw file as a fallback. Wait for the user to confirm the tool is installed.
+
 # Guardrails
 
-- If `pandoc` or `pdftotext` returns a command-line failure or missing dependency error, inform the user about the missing tool before trying to read the raw files.
+- Always run the dependency check before attempting any conversion.
 - Keep whitespace layout dense in the temporary file to maximize token space.
