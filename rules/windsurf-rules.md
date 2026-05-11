@@ -99,3 +99,40 @@ Task: [specific question or action]
 Scope: look only at [specific files/dirs]
 Return: [exact format], under [N] words. Nothing else.
 ```
+
+## Repo Index — Build Once, Read Always
+
+At the start of any session in a large or unfamiliar repo, check for `CLAUDE_INDEX.md` at the repo root first.
+
+- If it exists → read it instead of running find/ls to orient yourself
+- If it doesn't exist → build it from these commands (no file reads):
+  ```
+  cat package.json | grep -A50 '"dependencies"' | head -30
+  find src/ -maxdepth 2 -type d | sort
+  grep -rn "axios.create" src/ --include="*.ts" -l
+  grep -rn "create(" src/ --include="*.store.ts" -l
+  ```
+  Write a compact `CLAUDE_INDEX.md`: stack, module map, entry points, conventions, key config files. Keep it under 150 lines.
+- After any structural change → update only the changed section, not the whole file
+
+The index replaces all exploratory find/ls commands in future sessions.
+
+## Refactor Map — Grep Before You Read
+
+Before touching any file in a refactor:
+
+1. Define the change in one line: "I am changing X from old to new"
+2. Grep the full blast radius: `grep -rn "ThingBeingChanged" src/ --include="*.ts" --include="*.tsx" -l`
+3. For TypeScript: read and change the type/interface first — let compiler errors guide the rest
+4. Read files one at a time, only as you reach them in the change sequence — never read ahead
+5. For simple renames, grep the specific line and change without reading the full file:
+   `grep -n "oldName" src/path/to/file.ts` → read 10 lines around the match → change
+
+Common blast-radius greps:
+- Rename function: `grep -rn "oldName" src/ --include="*.ts" -l`
+- Add field to type: `grep -rn "TypeName" src/ --include="*.ts" -l`
+- Change hook return: `grep -rn "useHookName" src/ --include="*.tsx" -l`
+- Move file: `grep -rn "from.*old/path" src/ --include="*.ts" -l`
+- Change Zustand store: `grep -rn "useStoreName" src/ --include="*.tsx" -l`
+
+Never read consumer files speculatively. Grep gives you the list; TypeScript errors tell you what to fix.
