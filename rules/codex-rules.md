@@ -100,7 +100,6 @@ Scope: look only at [specific files/dirs]
 Return: [exact format], under [N] words. Nothing else.
 ```
 
-
 ## Repo Index — Build Once, Read Always
 
 At the start of any session in a large or unfamiliar repo, check for `CLAUDE_INDEX.md` at the repo root first.
@@ -114,9 +113,23 @@ At the start of any session in a large or unfamiliar repo, check for `CLAUDE_IND
   find . -maxdepth 2 -name "*.config.*" -o -name ".env*" | grep -v "node_modules" | head -10
   ```
   Write a compact `CLAUDE_INDEX.md` (under 150 lines): stack, module map, entry points, conventions, key config files.
-- After any structural change → update only the changed section, not the whole file
 
-The index replaces all exploratory find/ls commands in future sessions. Works for any stack.
+**After completing any task that causes a structural change, update `CLAUDE_INDEX.md` immediately — do not wait for the user to ask.**
+
+What requires an update:
+- Created a new file in a new directory → add to module map
+- Created a new module/feature → add row to module map with path and key files
+- Moved or renamed a file → update path in module map / entry points
+- Deleted a module → remove from module map
+- Added a new config file → add to key config files
+- Established a new convention → add to conventions section
+
+What does NOT require an update:
+- Editing existing files without moving them
+- Bug fixes within an existing module
+- Adding a function inside an existing file
+
+When updating: edit only the affected section + update the `_last updated` date. Never rewrite the whole file.
 
 ## Refactor Map — Grep Before You Read
 

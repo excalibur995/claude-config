@@ -94,14 +94,34 @@ At session start, read `CLAUDE_INDEX.md` first:
 - If it exists → use it, skip all find/ls exploration
 - If it's stale (you see structural changes not reflected) → rebuild only the changed section
 
-## Updating the index
+## Updating the index — agent responsibility
 
-After any task that changes structure:
-- Add the new module/feature to the module map
-- Update "what lives where" if a convention changed
-- Update the date
+**After completing any task that causes structural change, you MUST update `CLAUDE_INDEX.md` before ending the session.** Do not wait for the user to ask.
 
-Edit only the changed section — never rewrite the whole file.
+Structural changes that require an update:
+
+| Change made | What to update in the index |
+|---|---|
+| Created a new file in a new directory | Add directory to module map |
+| Created a new module/feature/domain | Add row to module map with path and key files |
+| Moved or renamed a file | Update the path in module map and entry points |
+| Deleted a module or feature | Remove from module map |
+| Added a new config file | Add to key config files section |
+| Established a new convention | Add to conventions section |
+| Added a new entry point | Add to entry points section |
+
+Changes that do NOT require an index update:
+- Editing existing files without moving them
+- Bug fixes within an existing module
+- Adding a function inside an existing file
+- Changing implementation without changing module structure
+
+## How to update
+
+Edit only the affected section — never rewrite the whole file:
+1. Update the relevant rows/lines
+2. Update the `_last updated` date
+3. Leave all other sections untouched
 
 ## What NOT to index
 
@@ -112,4 +132,5 @@ Edit only the changed section — never rewrite the whole file.
 
 # Trigger
 
-Apply at the start of any session in a codebase you haven't worked in recently, or any repo larger than ~20 files.
+- **Session start**: read `CLAUDE_INDEX.md` before any exploration in repos larger than ~20 files
+- **Session end / task completion**: update `CLAUDE_INDEX.md` if any structural change was made
