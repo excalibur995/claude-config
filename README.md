@@ -1,6 +1,6 @@
 # Claude Config
 
-Personal Claude Code configuration — skills, hooks, global memory, and plugin settings.
+Personal AI coding configuration — Claude Code skills, hooks, global memory, plugin settings, and token optimization rules for Cursor, Windsurf, and Codex.
 
 ---
 
@@ -11,6 +11,7 @@ Personal Claude Code configuration — skills, hooks, global memory, and plugin 
 - [Claude Code](https://claude.ai/code) installed and logged in
 - Git configured (`git config --global user.name` and `user.email`)
 - Homebrew (Mac) — install from https://brew.sh if missing
+- [RTK](https://github.com/rtk-ai/rtk) installed (for token proxy on all tools)
 
 ### Install
 
@@ -19,9 +20,9 @@ git clone https://github.com/excalibur995/claude-config.git ~/claude-config
 cd ~/claude-config && ./install.sh
 ```
 
-The script installs `pandoc` and `poppler` via Homebrew automatically if they're missing, then sets up all Claude config files.
+The script installs `pandoc` and `poppler` via Homebrew automatically if they're missing, sets up all Claude config files, deploys token optimization rules to Cursor/Windsurf/Codex, and runs `rtk init` for each tool.
 
-Restart Claude Code after install.
+Restart Claude Code, Cursor, and Windsurf after install.
 
 ---
 
@@ -36,6 +37,9 @@ Restart Claude Code after install.
 | Global memory | `~/.claude/projects/-Users-<username>/memory/` |
 | pandoc | system — DOCX/HTML/XML/RST/LATEX conversion |
 | pdftotext | system — PDF text extraction |
+| Cursor rules | `~/.cursor/rules/token-optimization.mdc` |
+| Windsurf rules | `~/.windsurf/rules/token-optimization.md` |
+| Codex rules | `~/.codex/AGENTS.md` |
 
 ---
 

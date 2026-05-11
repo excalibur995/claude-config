@@ -64,4 +64,40 @@ cp -r "$DOTDIR/global-memory/." "$GLOBAL_MEM/"
 echo "✓ Global memory installed"
 
 echo ""
-echo "Done. Restart Claude Code to apply changes."
+
+# ── Other AI tools — rules deployment ─────────────────────────────────────────
+
+deploy_rules() {
+  local tool=$1
+  local dest=$2
+  local src=$3
+  if [ -f "$src" ]; then
+    mkdir -p "$(dirname "$dest")"
+    cp "$src" "$dest"
+    echo "✓ $tool rules deployed → $dest"
+  fi
+}
+
+# Cursor — global rules (applies to all projects)
+deploy_rules "Cursor" "$HOME/.cursor/rules/token-optimization.mdc" "$DOTDIR/rules/cursor-rules.mdc"
+
+# Windsurf — global rules
+deploy_rules "Windsurf" "$HOME/.windsurf/rules/token-optimization.md" "$DOTDIR/rules/windsurf-rules.md"
+
+# Codex — global AGENTS.md (OpenAI Codex reads this)
+deploy_rules "Codex" "$HOME/.codex/AGENTS.md" "$DOTDIR/rules/codex-rules.md"
+
+# RTK init for each tool (if rtk is installed)
+if command -v rtk &>/dev/null; then
+  echo ""
+  echo "Initializing RTK for other AI tools..."
+  rtk init -g --agent cursor  2>/dev/null && echo "✓ RTK → Cursor" || echo "⚠ RTK Cursor init skipped"
+  rtk init -g --agent windsurf 2>/dev/null && echo "✓ RTK → Windsurf" || echo "⚠ RTK Windsurf init skipped"
+  rtk init -g --codex          2>/dev/null && echo "✓ RTK → Codex" || echo "⚠ RTK Codex init skipped"
+else
+  echo "⚠ rtk not found — skipping RTK init for Cursor/Windsurf/Codex"
+  echo "  Install RTK from https://github.com/rtk-ai/rtk then re-run install.sh"
+fi
+
+echo ""
+echo "Done. Restart Claude Code, Cursor, and Windsurf to apply changes."
