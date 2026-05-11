@@ -17,12 +17,22 @@ Personal AI coding configuration — Claude Code skills, hooks, global memory, p
 
 ```bash
 git clone https://github.com/excalibur995/claude-config.git ~/claude-config
-cd ~/claude-config && ./install.sh
+cd ~/claude-config
 ```
 
-The script installs `pandoc` and `poppler` via Homebrew automatically if they're missing, sets up all Claude config files, deploys token optimization rules to Cursor/Windsurf/Codex, and runs `rtk init` for each tool.
+Then install per tool:
 
-Restart Claude Code, Cursor, and Windsurf after install.
+```bash
+./install.sh              # Claude Code only (default)
+./install.sh --cursor     # Cursor only
+./install.sh --windsurf   # Windsurf only
+./install.sh --codex      # Codex only
+./install.sh --all        # Everything at once
+```
+
+Each command is independent — run only what you have installed on the machine.
+
+`--claude` installs `pandoc` and `poppler` automatically via Homebrew if missing. All tools run `rtk init` automatically if RTK is installed.
 
 ---
 

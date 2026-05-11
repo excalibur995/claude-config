@@ -3,12 +3,46 @@ set -e
 
 DOTDIR="$(cd "$(dirname "$0")" && pwd)"
 USERNAME=$(whoami)
-GLOBAL_MEM="$HOME/.claude/projects/-Users-$USERNAME/memory"
 
-echo "Installing Claude config for: $USERNAME"
-echo ""
+# ── Usage ─────────────────────────────────────────────────────────────────────
 
-# ── Dependencies ─────────────────────────────────────────────────────────────
+usage() {
+  echo "Usage: ./install.sh [--claude | --cursor | --windsurf | --codex | --all]"
+  echo ""
+  echo "  --claude     Install Claude Code config (skills, hooks, settings, memory)"
+  echo "  --cursor     Deploy token optimization rules + RTK for Cursor"
+  echo "  --windsurf   Deploy token optimization rules + RTK for Windsurf"
+  echo "  --codex      Deploy token optimization rules + RTK for Codex"
+  echo "  --all        Install everything above"
+  echo ""
+  echo "  Default (no args): --claude"
+  exit 0
+}
+
+# ── Arg parsing ───────────────────────────────────────────────────────────────
+
+DO_CLAUDE=false
+DO_CURSOR=false
+DO_WINDSURF=false
+DO_CODEX=false
+
+if [ $# -eq 0 ]; then
+  DO_CLAUDE=true
+else
+  for arg in "$@"; do
+    case $arg in
+      --claude)   DO_CLAUDE=true ;;
+      --cursor)   DO_CURSOR=true ;;
+      --windsurf) DO_WINDSURF=true ;;
+      --codex)    DO_CODEX=true ;;
+      --all)      DO_CLAUDE=true; DO_CURSOR=true; DO_WINDSURF=true; DO_CODEX=true ;;
+      --help|-h)  usage ;;
+      *) echo "Unknown option: $arg"; usage ;;
+    esac
+  done
+fi
+
+# ── Shared dependencies ───────────────────────────────────────────────────────
 
 install_brew_pkg() {
   local pkg=$1
@@ -20,84 +54,107 @@ install_brew_pkg() {
   brew install "$pkg"
 }
 
-# pandoc
-if ! command -v pandoc &>/dev/null; then
-  echo "⚠ pandoc not found — required for convert-doc skill (DOCX/HTML/XML/RST/LATEX)"
-  install_brew_pkg pandoc
-fi
-echo "✓ pandoc ready"
-
-# pdftotext (part of poppler)
-if ! command -v pdftotext &>/dev/null; then
-  echo "⚠ pdftotext not found — required for convert-doc skill (PDF)"
-  install_brew_pkg poppler
-fi
-echo "✓ pdftotext ready"
-
-echo ""
-
-# ── Claude config ─────────────────────────────────────────────────────────────
-
-# Skills
-rm -rf ~/.claude/skills
-ln -sf "$DOTDIR/skills" ~/.claude/skills
-echo "✓ Skills linked"
-
-# Global instructions
-cp "$DOTDIR/CLAUDE.md" ~/.claude/CLAUDE.md
-cp "$DOTDIR/RTK.md" ~/.claude/RTK.md
-echo "✓ CLAUDE.md and RTK.md copied"
-
-# Hooks
-mkdir -p ~/.claude/hooks
-cp -r "$DOTDIR/hooks/." ~/.claude/hooks/
-chmod +x ~/.claude/hooks/*.sh 2>/dev/null || true
-echo "✓ Hooks installed"
-
-# Settings
-cp "$DOTDIR/settings.json" ~/.claude/settings.json
-echo "✓ Settings applied"
-
-# Global memory
-mkdir -p "$GLOBAL_MEM"
-cp -r "$DOTDIR/global-memory/." "$GLOBAL_MEM/"
-echo "✓ Global memory installed"
-
-echo ""
-
-# ── Other AI tools — rules deployment ─────────────────────────────────────────
-
-deploy_rules() {
-  local tool=$1
-  local dest=$2
-  local src=$3
-  if [ -f "$src" ]; then
-    mkdir -p "$(dirname "$dest")"
-    cp "$src" "$dest"
-    echo "✓ $tool rules deployed → $dest"
+ensure_docs_deps() {
+  if ! command -v pandoc &>/dev/null; then
+    echo "⚠ pandoc not found — required for convert-doc"
+    install_brew_pkg pandoc
   fi
+  echo "✓ pandoc ready"
+
+  if ! command -v pdftotext &>/dev/null; then
+    echo "⚠ pdftotext not found — required for convert-doc (PDF)"
+    install_brew_pkg poppler
+  fi
+  echo "✓ pdftotext ready"
 }
 
-# Cursor — global rules (applies to all projects)
-deploy_rules "Cursor" "$HOME/.cursor/rules/token-optimization.mdc" "$DOTDIR/rules/cursor-rules.mdc"
+# ── Installers ────────────────────────────────────────────────────────────────
 
-# Windsurf — global rules
-deploy_rules "Windsurf" "$HOME/.windsurf/rules/token-optimization.md" "$DOTDIR/rules/windsurf-rules.md"
+install_claude() {
+  echo "── Claude Code ──────────────────────────────────────────────────────────────"
+  GLOBAL_MEM="$HOME/.claude/projects/-Users-$USERNAME/memory"
 
-# Codex — global AGENTS.md (OpenAI Codex reads this)
-deploy_rules "Codex" "$HOME/.codex/AGENTS.md" "$DOTDIR/rules/codex-rules.md"
-
-# RTK init for each tool (if rtk is installed)
-if command -v rtk &>/dev/null; then
+  ensure_docs_deps
   echo ""
-  echo "Initializing RTK for other AI tools..."
-  rtk init -g --agent cursor  2>/dev/null && echo "✓ RTK → Cursor" || echo "⚠ RTK Cursor init skipped"
-  rtk init -g --agent windsurf 2>/dev/null && echo "✓ RTK → Windsurf" || echo "⚠ RTK Windsurf init skipped"
-  rtk init -g --codex          2>/dev/null && echo "✓ RTK → Codex" || echo "⚠ RTK Codex init skipped"
-else
-  echo "⚠ rtk not found — skipping RTK init for Cursor/Windsurf/Codex"
-  echo "  Install RTK from https://github.com/rtk-ai/rtk then re-run install.sh"
-fi
 
+  rm -rf ~/.claude/skills
+  ln -sf "$DOTDIR/skills" ~/.claude/skills
+  echo "✓ Skills linked"
+
+  cp "$DOTDIR/CLAUDE.md" ~/.claude/CLAUDE.md
+  cp "$DOTDIR/RTK.md" ~/.claude/RTK.md
+  echo "✓ CLAUDE.md and RTK.md copied"
+
+  mkdir -p ~/.claude/hooks
+  cp -r "$DOTDIR/hooks/." ~/.claude/hooks/
+  chmod +x ~/.claude/hooks/*.sh 2>/dev/null || true
+  echo "✓ Hooks installed"
+
+  cp "$DOTDIR/settings.json" ~/.claude/settings.json
+  echo "✓ Settings applied"
+
+  mkdir -p "$GLOBAL_MEM"
+  cp -r "$DOTDIR/global-memory/." "$GLOBAL_MEM/"
+  echo "✓ Global memory installed"
+
+  echo ""
+  echo "Restart Claude Code to apply changes."
+}
+
+install_cursor() {
+  echo "── Cursor ───────────────────────────────────────────────────────────────────"
+  mkdir -p "$HOME/.cursor/rules"
+  cp "$DOTDIR/rules/cursor-rules.mdc" "$HOME/.cursor/rules/token-optimization.mdc"
+  echo "✓ Rules deployed → ~/.cursor/rules/token-optimization.mdc"
+
+  if command -v rtk &>/dev/null; then
+    rtk init -g --agent cursor 2>/dev/null && echo "✓ RTK initialized for Cursor" || echo "⚠ RTK Cursor init failed"
+  else
+    echo "⚠ rtk not found — install from https://github.com/rtk-ai/rtk then re-run"
+  fi
+
+  echo ""
+  echo "Restart Cursor to apply changes."
+}
+
+install_windsurf() {
+  echo "── Windsurf ─────────────────────────────────────────────────────────────────"
+  mkdir -p "$HOME/.windsurf/rules"
+  cp "$DOTDIR/rules/windsurf-rules.md" "$HOME/.windsurf/rules/token-optimization.md"
+  echo "✓ Rules deployed → ~/.windsurf/rules/token-optimization.md"
+
+  if command -v rtk &>/dev/null; then
+    rtk init -g --agent windsurf 2>/dev/null && echo "✓ RTK initialized for Windsurf" || echo "⚠ RTK Windsurf init failed"
+  else
+    echo "⚠ rtk not found — install from https://github.com/rtk-ai/rtk then re-run"
+  fi
+
+  echo ""
+  echo "Restart Windsurf to apply changes."
+}
+
+install_codex() {
+  echo "── Codex ────────────────────────────────────────────────────────────────────"
+  mkdir -p "$HOME/.codex"
+  cp "$DOTDIR/rules/codex-rules.md" "$HOME/.codex/AGENTS.md"
+  echo "✓ Rules deployed → ~/.codex/AGENTS.md"
+
+  if command -v rtk &>/dev/null; then
+    rtk init -g --codex 2>/dev/null && echo "✓ RTK initialized for Codex" || echo "⚠ RTK Codex init failed"
+  else
+    echo "⚠ rtk not found — install from https://github.com/rtk-ai/rtk then re-run"
+  fi
+
+  echo ""
+  echo "Codex will pick up AGENTS.md automatically on next run."
+}
+
+# ── Run ───────────────────────────────────────────────────────────────────────
+
+echo "Claude config installer — user: $USERNAME"
 echo ""
-echo "Done. Restart Claude Code, Cursor, and Windsurf to apply changes."
+
+$DO_CLAUDE   && install_claude
+$DO_CURSOR   && install_cursor
+$DO_WINDSURF && install_windsurf
+$DO_CODEX    && install_codex
