@@ -105,34 +105,36 @@ Return: [exact format], under [N] words. Nothing else.
 At the start of any session in a large or unfamiliar repo, check for `CLAUDE_INDEX.md` at the repo root first.
 
 - If it exists → read it instead of running find/ls to orient yourself
-- If it doesn't exist → build it from these commands (no file reads):
+- If it doesn't exist → build it from these commands only (no file reads):
   ```
-  cat package.json | grep -A50 '"dependencies"' | head -30
-  find src/ -maxdepth 2 -type d | sort
-  grep -rn "axios.create" src/ --include="*.ts" -l
-  grep -rn "create(" src/ --include="*.store.ts" -l
+  ls -1
+  find . -maxdepth 2 -type d | grep -v "node_modules|\.git|dist|build|vendor|__pycache__" | sort
+  find . -name "main.*" -o -name "index.*" -o -name "app.*" -o -name "server.*" | grep -v "node_modules|dist|build" | head -15
+  find . -maxdepth 2 -name "*.config.*" -o -name ".env*" | grep -v "node_modules" | head -10
   ```
-  Write a compact `CLAUDE_INDEX.md`: stack, module map, entry points, conventions, key config files. Keep it under 150 lines.
+  Write a compact `CLAUDE_INDEX.md` (under 150 lines): stack, module map, entry points, conventions, key config files.
 - After any structural change → update only the changed section, not the whole file
 
-The index replaces all exploratory find/ls commands in future sessions.
+The index replaces all exploratory find/ls commands in future sessions. Works for any stack.
 
 ## Refactor Map — Grep Before You Read
 
 Before touching any file in a refactor:
 
 1. Define the change in one line: "I am changing X from old to new"
-2. Grep the full blast radius: `grep -rn "ThingBeingChanged" src/ --include="*.ts" --include="*.tsx" -l`
-3. For TypeScript: read and change the type/interface first — let compiler errors guide the rest
-4. Read files one at a time, only as you reach them in the change sequence — never read ahead
-5. For simple renames, grep the specific line and change without reading the full file:
-   `grep -n "oldName" src/path/to/file.ts` → read 10 lines around the match → change
+2. Grep the full blast radius (exclude noise):
+   `grep -rln "thingBeingChanged" . | grep -v "node_modules\|dist\|build\|vendor\|\.git"`
+3. Find and change the contract definition first (type/interface/struct/schema/class) — let the compiler or linter surface everything else
+4. Read files one at a time, only as you reach them — never read ahead
+5. For simple renames, don't read the whole file:
+   `grep -n "oldName" path/to/file` → read 10–15 lines around the match → change
 
-Common blast-radius greps:
-- Rename function: `grep -rn "oldName" src/ --include="*.ts" -l`
-- Add field to type: `grep -rn "TypeName" src/ --include="*.ts" -l`
-- Change hook return: `grep -rn "useHookName" src/ --include="*.tsx" -l`
-- Move file: `grep -rn "from.*old/path" src/ --include="*.ts" -l`
-- Change Zustand store: `grep -rn "useStoreName" src/ --include="*.tsx" -l`
+Common blast-radius greps (works for any language):
+- Rename function/method: `grep -rln "oldFuncName" .`
+- Add field to model/type: `grep -rln "ModelName" .`
+- Change function signature: `grep -rln "funcName(" .`
+- Move file: `grep -rln "from.*old/path\|import.*old/path\|require.*old/path" .`
+- Rename env var: `grep -rln "OLD_VAR_NAME" .`
+- Change API path: `grep -rln '"/old/endpoint"' .`
 
-Never read consumer files speculatively. Grep gives you the list; TypeScript errors tell you what to fix.
+Never read consumer files speculatively. Grep gives you the list; compiler/test errors tell you what to fix.

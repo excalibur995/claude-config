@@ -7,83 +7,83 @@ description: Build and maintain a compact repo index file so future sessions nev
 
 Re-discovering repo structure every session is the biggest recurring token waste. This skill creates a persistent `CLAUDE_INDEX.md` at the repo root — a compact map of everything relevant. Future sessions read it in one shot instead of running find/ls/grep to rebuild context.
 
+Works for any stack: frontend, backend, mobile, monorepo, CLI, API service, etc.
+
 # When to use
 
 - Start of a session in an unfamiliar or large repo
 - After a significant structural change (new module, major refactor)
-- When you catch yourself running `find src/` or `ls` to orient yourself
+- When you catch yourself running `find` or `ls` just to orient yourself
 
 # Index Format
 
-Keep it under 150 lines. Dense, no prose.
+Keep it under 150 lines. Dense, no prose. Adapt sections to what actually exists in the repo.
 
 ```markdown
 # Repo Index
 _last updated: YYYY-MM-DD_
 
 ## Stack
-Next.js 14 app router / TypeScript / Tailwind / TanStack Query / Zustand / Zod / React Hook Form / Axios
+[language] / [runtime or framework] / [key libraries] / [build tool] / [test framework]
 
 ## Entry Points
-- `src/app/` — Next.js routes (app router)
-- `src/features/` — feature modules (one folder per domain)
-- `src/shared/` — cross-feature utilities, components, hooks
-- `src/lib/` — third-party config (axios instance, query client, etc.)
-- `src/store/` — Zustand stores
+- `src/main.ts` or `cmd/` or `app/` — where execution starts
+- `src/routes/` or `src/api/` or `src/controllers/` — request handling
+- `src/services/` or `src/domain/` — business logic
+- `src/lib/` or `src/utils/` — shared utilities
 
-## Module Map
-| Feature | Path | Key files |
+## Module / Feature Map
+| Module | Path | Key files |
 |---|---|---|
-| auth | src/features/auth/ | schema.ts, useAuth.ts, auth.store.ts |
-| user | src/features/user/ | types.ts, useUser.ts, user.api.ts |
+| auth | src/modules/auth/ | auth.service.ts, auth.controller.ts |
+| user | src/modules/user/ | user.model.ts, user.service.ts |
 | ... | | |
 
 ## Conventions
-- API calls: axios instance at `src/lib/axios.ts`, per-feature api files
-- State: Zustand at `src/store/`, one file per domain
-- Forms: React Hook Form + Zod, schema colocated with form component
-- Data fetching: TanStack Query hooks in `src/features/<name>/hooks/`
-- Types: `types.ts` or `*.types.ts` colocated in feature folder
+- [How the project is structured: feature-based, layered, domain-driven, etc.]
+- [Where models/schemas/types live]
+- [Where business logic lives vs infrastructure]
+- [Test file location pattern: colocated, __tests__, spec/]
+- [Config/env loading pattern]
 
 ## Key Config Files
-- `src/lib/axios.ts` — base URL, interceptors, auth headers
-- `src/lib/query-client.ts` — TanStack Query defaults
-- `src/store/` — all Zustand stores
-
-## Shared Components
-- `src/shared/components/ui/` — base UI components
-- `src/shared/hooks/` — reusable hooks
+- [main config file] — what it controls
+- [env/secrets file] — how env vars are loaded
+- [build/deploy config] — build tool config
 
 ## What Lives Where
-- New API endpoint → `src/features/<name>/api/`
-- New page → `src/app/<route>/page.tsx`
-- New shared hook → `src/shared/hooks/`
-- New form → colocate with the feature component + add Zod schema
+- New feature/domain → [where to add it]
+- New shared utility → [where to put it]
+- New test → [where it goes]
+- New config/env var → [where to register it]
 ```
 
 # Protocol
 
 ## Building the index (first time)
 
-Run these in sequence — each is one command, no file reads:
+Run in sequence — commands only, no file reads:
 
 ```bash
-# 1. Stack
-cat package.json | grep -A50 '"dependencies"' | grep -v "dev" | head -30
+# 1. Detect stack (use whichever exists)
+cat package.json 2>/dev/null | grep -A30 '"dependencies"' | head -25
+cat go.mod 2>/dev/null | head -15
+cat Cargo.toml 2>/dev/null | head -15
+cat requirements.txt pyproject.toml 2>/dev/null | head -15
+cat build.gradle pom.xml 2>/dev/null | head -15
 
-# 2. Directory structure (2 levels deep)
-find src/ -maxdepth 2 -type d | sort
+# 2. Top-level structure
+ls -1
+find . -maxdepth 2 -type d | grep -v "node_modules\|\.git\|dist\|build\|__pycache__\|\.gradle\|vendor" | sort
 
-# 3. Entry points
-ls src/app/ src/features/ src/pages/ 2>/dev/null
+# 3. Entry points (adapt to language)
+find . -name "main.*" -o -name "index.*" -o -name "app.*" -o -name "server.*" | grep -v "node_modules\|dist\|build" | head -15
 
-# 4. Config files
-find src/lib src/config -type f 2>/dev/null | head -20
+# 4. Config and env files
+find . -maxdepth 2 -name "*.config.*" -o -name ".env*" -o -name "docker-compose*" | grep -v "node_modules" | head -15
 
-# 5. Conventions (grep for patterns, not file reads)
-grep -rn "axios.create" src/ --include="*.ts" -l
-grep -rn "create(" src/ --include="*.store.ts" -l
-grep -rn "z.object" src/ --include="*.ts" -l | head -10
+# 5. Test pattern
+find . -name "*.test.*" -o -name "*.spec.*" -o -name "*_test.*" | grep -v "node_modules\|dist" | head -10
 ```
 
 Write the index from this output. Do not read individual files to build it.
@@ -91,24 +91,25 @@ Write the index from this output. Do not read individual files to build it.
 ## Reading the index (subsequent sessions)
 
 At session start, read `CLAUDE_INDEX.md` first:
-- If it exists and was updated recently → use it, skip all find/ls exploration
-- If it's stale (major structural changes visible) → rebuild only the changed section
+- If it exists → use it, skip all find/ls exploration
+- If it's stale (you see structural changes not reflected) → rebuild only the changed section
 
 ## Updating the index
 
-After completing a task that changes structure:
-- Add the new feature/module to the module map
-- Update "what lives where" if a new convention was established
+After any task that changes structure:
+- Add the new module/feature to the module map
+- Update "what lives where" if a convention changed
 - Update the date
 
-Do not rewrite the whole index — edit only the changed section.
+Edit only the changed section — never rewrite the whole file.
 
 ## What NOT to index
 
 - Individual function signatures (grep for those on demand)
 - File contents (the index is a map, not a copy)
-- Anything already in `README.md` — link to it instead
+- Anything already in `README.md` — reference it instead
+- Dependency version numbers (check `package.json`/`go.mod` directly when needed)
 
 # Trigger
 
-Apply at the start of any session in a codebase you haven't worked in recently, or any codebase larger than ~20 files.
+Apply at the start of any session in a codebase you haven't worked in recently, or any repo larger than ~20 files.
