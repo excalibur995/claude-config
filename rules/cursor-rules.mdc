@@ -153,3 +153,32 @@ Common blast-radius greps (works for any language):
 - Change API path: `grep -rln '"/old/endpoint"' .`
 
 Never read consumer files speculatively. Grep gives you the list; compiler/test errors tell you what to fix.
+
+## Spreadsheet Conversion — Convert Spreadsheet
+
+When asked to read `.xlsx`, `.xls`, `.ods`, `.numbers`, or `.gnumeric`:
+
+1. Check dependencies first:
+   - `which xlsx2csv` (primary for xlsx)
+   - `which in2csv` (part of csvkit — handles xlsx, xls, ods)
+   - `which ssconvert` (fallback for ods/xls)
+2. If none available — stop and tell the user to install. Do NOT read the raw binary file.
+3. List sheets first — never assume sheet count or names:
+   - `xlsx2csv --list-sheets "file.xlsx"`
+   - `in2csv --names "file.xlsx"`
+4. Convert target sheet to CSV:
+   - Single sheet: `xlsx2csv -s 1 "file.xlsx" > /tmp/sheet_temp.csv`
+   - By name: `in2csv --sheet "SheetName" "file.xlsx" > /tmp/sheet_temp.csv`
+   - All sheets: `xlsx2csv -a "file.xlsx" /tmp/sheets/`
+   - ODS/XLS fallback: `ssconvert "file.ods" "fd://1" > /tmp/sheet_temp.csv`
+5. Read efficiently — never dump the full CSV into context:
+   - `head -20 /tmp/sheet_temp.csv` — preview
+   - `csvcut -c col1,col2 /tmp/sheet_temp.csv` — targeted columns
+   - `csvgrep -c status -m active /tmp/sheet_temp.csv` — filter rows
+   - `csvstat /tmp/sheet_temp.csv` — summary without full read
+6. After answering, delete: `rm -f /tmp/sheet_temp.csv && rm -rf /tmp/sheets/`
+
+Install instructions if missing:
+- csvkit (in2csv/csvcut/csvgrep/csvstat): `brew install csvkit` / `pip install csvkit`
+- xlsx2csv: `pipx install xlsx2csv` / `pip install xlsx2csv`
+- ssconvert: `brew install gnumeric` / `sudo apt install gnumeric`

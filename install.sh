@@ -70,11 +70,65 @@ ensure_docs_deps() {
 
 # ── Installers ────────────────────────────────────────────────────────────────
 
+ensure_spreadsheet_deps() {
+  local brew_ok=false
+  local pipx_ok=false
+
+  command -v brew &>/dev/null && brew_ok=true
+  command -v pipx &>/dev/null && pipx_ok=true
+
+  # csvkit (in2csv, csvcut, csvgrep, csvstat)
+  if ! command -v in2csv &>/dev/null; then
+    echo "⚠ csvkit not found — required for convert-spreadsheet"
+    if $brew_ok; then
+      echo "  Installing csvkit via Homebrew..."
+      brew install csvkit
+    else
+      echo "  Installing csvkit via pip..."
+      pip install --user csvkit
+    fi
+  fi
+  echo "✓ csvkit ready"
+
+  # xlsx2csv (not in brew, use pipx or pip)
+  if ! command -v xlsx2csv &>/dev/null; then
+    echo "⚠ xlsx2csv not found — required for convert-spreadsheet"
+    if ! $pipx_ok; then
+      if $brew_ok; then
+        echo "  Installing pipx via Homebrew..."
+        brew install pipx
+        pipx_ok=true
+      else
+        echo "  Installing pipx via pip..."
+        pip install --user pipx
+        pipx_ok=true
+      fi
+    fi
+    echo "  Installing xlsx2csv via pipx..."
+    pipx install xlsx2csv
+  fi
+  echo "✓ xlsx2csv ready"
+
+  # ssconvert (gnumeric) — fallback for ods/xls
+  if ! command -v ssconvert &>/dev/null; then
+    echo "⚠ ssconvert not found — required for convert-spreadsheet (ODS/XLS fallback)"
+    if $brew_ok; then
+      echo "  Installing gnumeric via Homebrew..."
+      brew install gnumeric
+    else
+      echo "  Installing gnumeric via apt..."
+      sudo apt-get install -y gnumeric
+    fi
+  fi
+  echo "✓ ssconvert ready"
+}
+
 install_claude() {
   echo "── Claude Code ──────────────────────────────────────────────────────────────"
   GLOBAL_MEM="$HOME/.claude/projects/-Users-$USERNAME/memory"
 
   ensure_docs_deps
+  ensure_spreadsheet_deps
   echo ""
 
   rm -rf ~/.claude/skills
