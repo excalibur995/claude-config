@@ -1,6 +1,6 @@
 # Claude Config
 
-Personal AI coding configuration — Claude Code skills, hooks, global memory, plugin settings, and token optimization rules for Cursor, Windsurf, and Codex.
+Personal AI coding configuration — Claude Code skills, hooks, global memory, plugin settings, and token optimization rules for Cursor, Windsurf, Codex, GitHub Copilot, Cline, Gemini CLI, and Zed.
 
 ---
 
@@ -11,7 +11,7 @@ Personal AI coding configuration — Claude Code skills, hooks, global memory, p
 - [Claude Code](https://claude.ai/code) installed and logged in
 - Git configured (`git config --global user.name` and `user.email`)
 - Homebrew (Mac) — install from https://brew.sh if missing
-- [RTK](https://github.com/rtk-ai/rtk) installed (for token proxy on all tools)
+- [RTK](https://github.com/rtk-ai/rtk) — auto-installed via Homebrew (or the official install script if brew is missing) when a tool that needs it is selected
 
 ### Install
 
@@ -27,6 +27,10 @@ Then install per tool:
 ./install.sh --cursor     # Cursor only
 ./install.sh --windsurf   # Windsurf only
 ./install.sh --codex      # Codex only
+./install.sh --copilot    # GitHub Copilot (VS Code) only
+./install.sh --cline      # Cline (VS Code) only
+./install.sh --gemini     # Gemini CLI only
+./install.sh --zed        # Zed only
 ./install.sh --all        # Everything at once
 ```
 
@@ -50,6 +54,10 @@ Each command is independent — run only what you have installed on the machine.
 | Cursor rules | `~/.cursor/rules/token-optimization.mdc` |
 | Windsurf rules | `~/.windsurf/rules/token-optimization.md` |
 | Codex rules | `~/.codex/AGENTS.md` |
+| Copilot rules | `~/Library/Application Support/Code/User/prompts/token-optimization.instructions.md` |
+| Cline rules | `~/Documents/Cline/Rules/token-optimization.md` |
+| Gemini CLI rules | `~/.gemini/GEMINI.md` |
+| Zed rules | `~/.config/zed/AGENTS.md` |
 
 ---
 
