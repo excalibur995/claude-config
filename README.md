@@ -1,6 +1,6 @@
 # Claude Config
 
-Personal AI coding configuration — Claude Code skills, hooks, global memory, plugin settings, and token optimization rules for Cursor, Windsurf, Codex, GitHub Copilot, Cline, Gemini CLI, and Zed.
+Personal AI coding configuration — Claude Code skills, hooks, global memory, plugin settings, and token optimization rules for Cursor, Windsurf, Codex, GitHub Copilot (VS Code + CLI), Cline, Gemini CLI, and Zed.
 
 ---
 
@@ -28,6 +28,7 @@ Then install per tool:
 ./install.sh --windsurf   # Windsurf only
 ./install.sh --codex      # Codex only
 ./install.sh --copilot    # GitHub Copilot (VS Code) only
+./install.sh --copilot-cli # GitHub Copilot CLI only
 ./install.sh --cline      # Cline (VS Code) only
 ./install.sh --gemini     # Gemini CLI only
 ./install.sh --zed        # Zed only
@@ -55,6 +56,7 @@ Each command is independent — run only what you have installed on the machine.
 | Windsurf rules | `~/.windsurf/rules/token-optimization.md` |
 | Codex rules | `~/.codex/AGENTS.md` |
 | Copilot rules | `~/Library/Application Support/Code/User/prompts/token-optimization.instructions.md` |
+| Copilot CLI rules | `~/.copilot/copilot-instructions.md` |
 | Cline rules | `~/Documents/Cline/Rules/token-optimization.md` |
 | Gemini CLI rules | `~/.gemini/GEMINI.md` |
 | Zed rules | `~/.config/zed/AGENTS.md` |

@@ -7,17 +7,18 @@ USERNAME=$(whoami)
 # ── Usage ─────────────────────────────────────────────────────────────────────
 
 usage() {
-  echo "Usage: ./install.sh [--claude | --cursor | --windsurf | --codex | --copilot | --cline | --gemini | --zed | --all]"
+  echo "Usage: ./install.sh [--claude | --cursor | --windsurf | --codex | --copilot | --copilot-cli | --cline | --gemini | --zed | --all]"
   echo ""
-  echo "  --claude     Install Claude Code config (skills, hooks, settings, memory)"
-  echo "  --cursor     Deploy token optimization rules + RTK for Cursor"
-  echo "  --windsurf   Deploy token optimization rules + RTK for Windsurf"
-  echo "  --codex      Deploy token optimization rules + RTK for Codex"
-  echo "  --copilot    Deploy token optimization rules for GitHub Copilot (VS Code)"
-  echo "  --cline      Deploy token optimization rules + RTK for Cline (VS Code)"
-  echo "  --gemini     Deploy token optimization rules + RTK for Gemini CLI"
-  echo "  --zed        Deploy token optimization rules for Zed"
-  echo "  --all        Install everything above"
+  echo "  --claude       Install Claude Code config (skills, hooks, settings, memory)"
+  echo "  --cursor       Deploy token optimization rules + RTK for Cursor"
+  echo "  --windsurf     Deploy token optimization rules + RTK for Windsurf"
+  echo "  --codex        Deploy token optimization rules + RTK for Codex"
+  echo "  --copilot      Deploy token optimization rules for GitHub Copilot (VS Code)"
+  echo "  --copilot-cli  Deploy token optimization rules for GitHub Copilot CLI"
+  echo "  --cline        Deploy token optimization rules + RTK for Cline (VS Code)"
+  echo "  --gemini       Deploy token optimization rules + RTK for Gemini CLI"
+  echo "  --zed          Deploy token optimization rules for Zed"
+  echo "  --all          Install everything above"
   echo ""
   echo "  Default (no args): --claude"
   exit 0
@@ -30,6 +31,7 @@ DO_CURSOR=false
 DO_WINDSURF=false
 DO_CODEX=false
 DO_COPILOT=false
+DO_COPILOT_CLI=false
 DO_CLINE=false
 DO_GEMINI=false
 DO_ZED=false
@@ -43,11 +45,12 @@ else
       --cursor)   DO_CURSOR=true ;;
       --windsurf) DO_WINDSURF=true ;;
       --codex)    DO_CODEX=true ;;
-      --copilot)  DO_COPILOT=true ;;
+      --copilot)     DO_COPILOT=true ;;
+      --copilot-cli) DO_COPILOT_CLI=true ;;
       --cline)    DO_CLINE=true ;;
       --gemini)   DO_GEMINI=true ;;
       --zed)      DO_ZED=true ;;
-      --all)      DO_CLAUDE=true; DO_CURSOR=true; DO_WINDSURF=true; DO_CODEX=true; DO_COPILOT=true; DO_CLINE=true; DO_GEMINI=true; DO_ZED=true ;;
+      --all)      DO_CLAUDE=true; DO_CURSOR=true; DO_WINDSURF=true; DO_CODEX=true; DO_COPILOT=true; DO_COPILOT_CLI=true; DO_CLINE=true; DO_GEMINI=true; DO_ZED=true ;;
       --help|-h)  usage ;;
       *) echo "Unknown option: $arg"; usage ;;
     esac
@@ -240,6 +243,18 @@ install_copilot() {
   echo "Restart VS Code to apply changes."
 }
 
+install_copilot_cli() {
+  echo "── GitHub Copilot CLI ──────────────────────────────────────────────────────"
+  # Global instructions file, per Copilot CLI's customInstructions locations
+  # (repo-level .github/copilot-instructions.md wins per-project; this is the fallback).
+  mkdir -p "$HOME/.copilot"
+  cp "$DOTDIR/rules/windsurf-rules.md" "$HOME/.copilot/copilot-instructions.md"
+  echo "✓ Rules deployed → ~/.copilot/copilot-instructions.md"
+
+  echo ""
+  echo "Copilot CLI will pick up copilot-instructions.md automatically on next run."
+}
+
 install_cline() {
   echo "── Cline (VS Code) ─────────────────────────────────────────────────────────"
   mkdir -p "$HOME/Documents/Cline/Rules"
@@ -301,6 +316,8 @@ $DO_CURSOR   && install_cursor
 $DO_WINDSURF && install_windsurf
 $DO_CODEX    && install_codex
 $DO_COPILOT  && install_copilot
+$DO_COPILOT_CLI && install_copilot_cli
 $DO_CLINE    && install_cline
 $DO_GEMINI   && install_gemini
 $DO_ZED      && install_zed
+true
